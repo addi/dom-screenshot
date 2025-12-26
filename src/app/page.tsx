@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 
-import domtoimage from "dom-to-image-more";
-
 export default function Home() {
   const section1Ref = useRef(null);
   const section2Ref = useRef(null);
@@ -12,8 +10,18 @@ export default function Home() {
   const refs = [section1Ref, section2Ref];
 
   const [screenshots, setScreenshots] = useState<string[]>(["", ""]);
+  const [domtoimage, setDomtoimage] = useState<any>(null);
+
+  useEffect(() => {
+    // Dynamically import dom-to-image-more only on the client side
+    import("dom-to-image-more").then((module) => {
+      setDomtoimage(module.default);
+    });
+  }, []);
 
   function takeScreenshot() {
+    if (!domtoimage) return;
+
     refs.forEach((ref, index) => {
       if (ref.current) {
         domtoimage.toPng(ref.current).then((dataUrl: string) => {
@@ -28,8 +36,10 @@ export default function Home() {
   }
 
   useEffect(() => {
-    takeScreenshot();
-  }, []);
+    if (domtoimage) {
+      takeScreenshot();
+    }
+  }, [domtoimage]);
 
   return (
     <div className={styles.page}>
